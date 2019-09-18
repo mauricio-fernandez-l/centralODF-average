@@ -2,6 +2,8 @@
 
 by Mauricio Fernández.
 
+Contact: mauricio.fernandez.lb@gmail.com
+
 ## Description
 
 Demonstration files for 

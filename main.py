@@ -7,10 +7,12 @@ Author:     Dr. Mauricio Fernández
 Email:      mauricio.fernandez.lb@gmail.com
 ORCID:      http://orcid.org/0000-0003-1840-1243
 
-The present main file calls for the routines of the file 'routines.py' and reproduces
+The present main file calls for the routines of the modules in 'source' and reproduces
 all examples shown in the above referred work. The author hopes that this script
-and the corresponding routines are helpful for the interested readers/users in order 
+and the corresponding modules are helpful for the interested readers/users in order 
 to reproduce the results on their own machines.
+
+The modules require numpy, sympy, scipy, itertools, os and datetime.
 '''
 print(info)
 
@@ -20,14 +22,25 @@ import numpy as np
 import datetime
 
 import source.TensorCalculusNumpy as tn
+import source.TensorCalculusSympy as ts
 import source.CentralODFAverage as cen
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
 
 #%% Demonstration 1: generate permutation basis for isotropic tensors
 
-print('\n***** Demonstration 1 ******\n')
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 1 ************************\n')
 
+# Information
+info = '''
+The following example demonstrates the computation of a permutation 
+basis for n = 7.
+'''
+print(info)
+
+# Computation
 n = 7
 print('Compute permutation basis for n='+str(n))
 t1 = datetime.datetime.now()
@@ -38,7 +51,16 @@ np.savetxt('source/data/pbasis'+str(n)+'.txt',P,fmt='%d')
 
 #%% Demonstration 2: compute isotropic tensors $D_{<2r>\\alpha}$
 
-print('\n***** Demonstration 2 ******\n')
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 2 ************************\n')
+
+# Information
+info = '''
+The following example demonstrates the computation of the isotropic
+tensors D_{<2r>\alpha} for r=2.
+'''
+print(info)
 
 # Compute tensors    
 r = 2
@@ -69,10 +91,19 @@ if r==2:
     print('Deviation of D_{<4>2} from Ih:\t\t%.4e' % tn.nf(Dv[2]-Ih))
 
 #%% Demonstration 3: example for r=4
-    
-print('\n***** Demonstration 3 ******\n')
-print('Example for r=4')
 
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 3 ************************\n')
+
+# Information
+info = '''
+The following example corresponds to the example for r=4 
+in the manuscript, documented section 3.1, equations (68) - (71).
+'''
+print(info)
+
+# Initial fourth-order tensor
 A = np.zeros((3,3,3,3))
 A[0,0,0,0] = 1
 A[0,1,0,0] = 2
@@ -111,14 +142,22 @@ AMiso = tn.lm(Ds[0],AM)
 AManiso = AM-AMiso
 print('\nNorm of additionaly major symmetric AM:\n\t%2.4f' % tn.nf(AM))
 print('Norm of isotropic and anisotropic parts of AM\n\t%2.4f\n\t%2.4f' % (tn.nf(AMiso),tn.nf(AManiso)))
-print('Norms of D_{<2r>\\alpha}[Am]')
+print('Norms of D_{<2r>\\alpha}[AM]')
 for i in range(r+1): print('\t%2.4f' % tn.nf(tn.lm(Ds[i],AM)))
 
 
 #%% Demonstration 4: example for r=5
 
-print('\n***** Demonstration 4 ******\n')
-print('Example for r=5')
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 4 ************************\n')
+
+# Information
+info = '''
+The following example corresponds to the example for r=5 
+in the manuscript, documented section 3.1, equations (72) - (73).
+'''
+print(info)
 
 # Reference tensor
 A = np.zeros((3,3,3,3,3))
@@ -139,10 +178,120 @@ print('Norm of isotropic and anisotropic parts of A\n\t%2.4f\n\t%2.4f' % (tn.nf(
 print('Norms of D_{<2r>\\alpha}[A]')
 for i in range(r+1): print('\t%2.4f' % tn.nf(tn.lm(Ds[i],A)))
 
-#%% Demonstration 5: minimization of epsilon^+
+#%% Demonstration 5: finite elasticity with C4 and C6
 
-print('\n***** Demonstration 5 ******\n')
-print('Minimization of $\\epsilon^+$')
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 5 ************************\n')
+
+# Information
+info = '''
+The following example corresponds to the finite elasticity 
+example in the manuscript documented section 3.2 for aluminum. 
+The symbolic generation of the sixth-order cubic tensor takes 
+time. It is probably a good idea to go and get some tea or coffee.
+'''
+print(info)
+
+# C4: 
+print('\nGenerating a symbolic C4 tensor...')
+print('\t%s' % datetime.datetime.now())
+# generate symbolic tensor, symmetrize indices, fulfill cubic group conditions
+C = ts.gent('c',4)
+print('Solving index symmetries...')
+print('\t%s' % datetime.datetime.now())
+index_sym = [(1,0,2,3),(2,3,0,1)]
+for i in index_sym:
+    C = ts.symmetrizeex(C,i)
+print('Solving cubic group conditions...')
+print('\t%s' % datetime.datetime.now())
+for Q in ts.sg_cub:
+    C = C.subs(ts.sym.solve(C-ts.rp(Q,C)))
+print('Free components')
+print(C.free_symbols)
+print('\t%s' % datetime.datetime.now())
+# Insert material data for aluminum
+print('Inserting material data for aluminum...')
+print('\t%s' % datetime.datetime.now())
+mat_data = {
+        C[0,0,0,0]:108
+        ,C[1,2,1,2]:33
+        ,C[0,0,1,1]:59
+        }
+C = np.array(C.subs(mat_data)).astype(np.float).reshape(3,3,3,3)
+# Load corresponding isotropic tensors and reshape to full tensors
+print('Loading corresponding isotropic tensors D_{<2r>\\alpha}...')
+print('\t%s' % datetime.datetime.now())
+r = C.ndim
+n = 2*r
+Ds = np.loadtxt('source/data/Dvec'+str(n)+'.txt')
+Ds = [np.reshape(Ds[:,i],n*(3,)) for i in range(r+1)]
+# Compute linear mapts and display norms
+print('Computing norms...')
+print('\t%s' % datetime.datetime.now())
+for i in range(r+1): print('\t%2.4f' % tn.nf(tn.lm(Ds[i],C)))
+print('\t(see equation (82))')
+print('\t%s' % datetime.datetime.now())
+
+# C6: 
+print('\n\nGenerating a symbolic C6 tensor...')
+print('\t%s' % datetime.datetime.now())
+# generate symbolic tensor, symmetrize indices, fulfill cubic group conditions
+C = ts.gent('c',6)
+print('Solving index symmetries...')
+print('[This takes a while, 2-5 min. May be, get some coffee :D]')
+print('\t%s' % datetime.datetime.now())
+index_sym = [(1,0,2,3,4,5),(2,3,0,1,4,5),(0,1,4,5,2,3)]
+for i in index_sym:
+    C = ts.symmetrizeex(C,i)
+print('Solving cubic group conditions...')
+print('\t%s' % datetime.datetime.now())
+for Q in ts.sg_cub:
+    C = C.subs(ts.sym.solve(C-ts.rp(Q,C)))
+print('Free components')
+print(C.free_symbols)
+print('\t%s' % datetime.datetime.now())
+# Insert material data for aluminum
+print('Inserting material data for aluminum...')
+print('\t%s' % datetime.datetime.now())
+mat_data = {
+        C[0,0,0,0,0,0]:-1100
+        ,C[0,0,0,0,1,1]:-371
+        ,C[0,0,1,1,2,2]:104
+        ,C[0,0,1,2,1,2]:39
+        ,C[0,0,0,2,0,2]:-421
+        ,C[1,2,0,2,0,1]:-22
+        }
+C = np.array(C.subs(mat_data)).astype(np.float).reshape(3,3,3,3,3,3)
+# Load corresponding isotropic tensors and reshape to full tensors
+print('Loading corresponding isotropic tensors D_{<2r>\\alpha}...')
+print('\t%s' % datetime.datetime.now())
+r = C.ndim
+n = 2*r
+Ds = np.loadtxt('source/data/Dvec'+str(n)+'.txt')
+Ds = [np.reshape(Ds[:,i],n*(3,)) for i in range(r+1)]
+# Compute linear mapts and display norms
+print('Computing norms...')
+print('\t%s' % datetime.datetime.now())
+for i in range(r+1): print('\t%2.4f' % tn.nf(tn.lm(Ds[i],C)))
+print('\t(see equation (82))')
+print('\t%s' % datetime.datetime.now())
+
+#%% Demonstration 6: minimization of epsilon^+
+
+print('\n**********************************************')
+print('**********************************************')
+print('***** Demonstration 6 ************************\n')
+
+# Information
+info = '''
+The following example corresponds to the quantitative texture 
+analysis example in the manuscript documented section 3.3 
+(minimization of \epsilon^+). The numerical optimizations 
+take some time. The corresponding restuls can be found in
+the manuscript, section 3.3, Table 2.
+'''
+print(info)
 
 # Original orientation data
 nfori = 21
@@ -174,6 +323,7 @@ for m in [2,3,4]:
     Vori = cen.tc(odata,r)  
     Vcen = cen.tccen(res)
     print('\t%.4f' % cen.epsilonplus(Vori,Vcen))
+    print('(see Table 2)')
     
 # Direct evaluation evaluation
 print('\n----------------------------------------')

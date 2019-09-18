@@ -103,6 +103,30 @@ def diso(n):
         a1 = a2
     return int(a2)
 
+def fict(n):
+    '''
+    Fundamental isotropic cartesian tensors for even tensor order n.
+    '''
+    if os.path.isfile('source/data/fict'+str(n)+'.txt'):
+        return np.loadtxt('source/data/fict'+str(n)+'.txt',dtype=np.int)
+    if n==4:
+        return np.array([
+                [0,1,2,3]
+                ,[0,2,1,3]
+                ,[0,3,1,2]
+                ],dtype=np.int)
+    else:
+        out = []
+        for i in range(1,n):
+            head = [0,i]
+            tail0 = list(set(range(1,n)) - set([i]))
+            for previous in fict(n-2):
+                tail = [tail0[p] for p in previous]
+                out = out + [head+tail]
+        if not os.path.isfile('source/data/fict'+str(n)+'.txt'):
+            np.savetxt('source/data/fict'+str(n)+'.txt',np.array(out),fmt='%i')
+        return out
+            
 #%% Harmonic tensors
     
 def dh(a):
@@ -116,7 +140,7 @@ def genhonb(n):
     genhonb(n) returns a orthonormal basis for the space of n-th-order 
     harmonic tensors as a Numpy array.
     '''
-    return np.array(sym.Matrix(ts.genhonbS(n))).astype(np.float64)
+    return np.array(sym.Matrix(ts.genhonb(n))).astype(np.float64)
 
 def checkhonb(r):
     '''

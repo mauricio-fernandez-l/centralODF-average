@@ -11,10 +11,13 @@ from scipy import integrate
 from scipy.optimize import minimize
 
 from . import TensorCalculusNumpy as tn
+from . import TensorCalculusSympy as ts
+
+import datetime
 
 #%% Generation of a permutation basis with random permutations
 
-def randompbasis(n,r_plus=0.3):
+def randompbasis(n,r_plus=0.3,info=False):
     '''
     randompbasis(n,r_plus) returns a permutation basis for the space of n-th-order
     isotropic tensors.
@@ -26,20 +29,52 @@ def randompbasis(n,r_plus=0.3):
     P = np.array([np.random.permutation(n) for i in range(d+n_plus)])
     Bmat = np.array([np.reshape(np.transpose(B,p),int(3**n)) for p in P],dtype=np.int8)
     r = np.linalg.matrix_rank(Bmat)
+    if info: print("First try: %i/%i = %.4f" % (r,d,r/d))
     
     while r < d:
+        if info: print('Enriching started at:\n\t%s' % datetime.datetime.now())
         Pa = np.array([np.random.permutation(n) for i in range(n_plus)])
         P = np.concatenate((P,Pa),axis=0)
         Bmata = np.array([np.reshape(np.transpose(B,p),int(3**n)) for p in Pa],dtype=np.int8)
         Bmat = np.concatenate((Bmat,Bmata),axis=0)
         r = np.linalg.matrix_rank(Bmat)
+        if info: print("Currently: %i/%i = %.4f" % (r,d,r/d))
         
+    if info: print('Extracting linear independent permutations')
     _,uni = np.unique(Bmat,axis=0,return_index=True)
     P = P[uni]
     Bmat = Bmat[uni]
     
     li = tn.licqr(np.transpose(Bmat))
     return P[li]
+
+def randompbasisdet(n,info=False):
+    '''
+    Incremental routine for the generation of a permutation basis based on 
+    metric matrix and determinant criterion.
+    (Computation of the exact symbolic determinant is the bottle neck)
+    '''
+    d = tn.diso(n)
+    B = tn.Biso(n).astype(int)
+    
+    P = [np.arange(n)]
+    mv = [[0,0,tn.sp(B,B)]]
+    
+    while len(P)<d:
+        c = len(P)+1
+        P2 = P+[np.random.permutation(n)]
+        Pc = np.transpose(B,P2[-1]).astype(int)
+        mv2 = mv+[[i,c-1,tn.sp(np.transpose(B,P2[i]),Pc)] for i in range(len(P2))]
+        met = np.zeros([c,c]).astype(int)
+        for v in mv2:
+            met[v[0],v[1]] = v[2]
+            met[v[1],v[0]] = v[2]
+        if ts.sym.det(ts.sym.Matrix(met))!=0:
+            P = P2
+            mv = mv2
+        if info: print('Currently: %i/%i = %.4f' % (len(P),d,len(P)/d))
+
+    return P
 
 #%% Computation of isotropic tensors D_{<2r>\alpha}
 
@@ -61,19 +96,29 @@ def m(om):
 def computeDv(r):
     '''
     copmuteDv(r) returns a matrix containing the isotropic tensors D_{<2r>\alpha} for
-    \alpha in {0,2,...,r} flattened as column vectors.
+    \alpha in {0,1,2,...,r} flattened as column vectors.
     '''
     n = 2*r
+    print('...Loading permutation basis')
+    print(datetime.datetime.now())
     P = np.loadtxt('source/data/pbasis'+str(n)+'.txt',np.int8)
     B = tn.Biso(n)
+    print('...Constructing basis')
+    print(datetime.datetime.now())
     b = np.transpose(np.array([tn.flatten(np.transpose(B,p)) for p in P]))
+    print('...Computing ONB')
+    print(datetime.datetime.now())
     onb,_ = np.linalg.qr(b)
     def proj(om,i):
         return np.matmul(tn.flatten(tn.rpow(tn.rotm([1,0,0],om),r)),onb[:,i])
+    print('...Computing integrals')
+    print(datetime.datetime.now())
     c = np.array([[
             integrate.quad(lambda om: tn.dh(a)*D(a,om)*4*np.pi*m(om)*proj(om,i),0,np.pi)[0]
         for a in range(r+1)]
         for i in range(tn.diso(n))])
+    print('...Done')
+    print(datetime.datetime.now())
     return np.matmul(onb,c)
     
 #%% Routines for orientation average and computation of texture coefficients
