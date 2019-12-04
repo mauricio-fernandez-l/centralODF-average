@@ -10,7 +10,7 @@ Demonstration files for
 
 **"On the orientation average based on central orientation density functions for polycrystalline materials"**
 
-by Mauricio Fernández. The present Python 3 project is organized in three modules in the folder 'source'
+by Mauricio Fernández (publication in Journal of Elasticity https://link.springer.com/article/10.1007/s10659-019-09754-8). The present Python 3 project is organized in three modules in the folder 'source'
 
 * TensorCalculusNumpy.py
 * TensorCalculusSympy.py
