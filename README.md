@@ -8,16 +8,27 @@ Contact: mauricio.fernandez.lb@gmail.com
 
 Demonstration files for 
 
-**"On the orientation average based on central orientation density functions for polycrystalline materials"**
+**[1] "On the orientation average based on central orientation density functions for polycrystalline materials"**
 
-by Mauricio Fernández (publication in Journal of Elasticity https://link.springer.com/article/10.1007/s10659-019-09754-8). The present Python 3 project is organized in three modules in the folder 'source'
+by Mauricio Fernández (publication in Journal of Elasticity https://link.springer.com/article/10.1007/s10659-019-09754-8). 
+
+## Source code
+
+The Python 3 source code is organized in three modules in the folder 'src'
 
 * TensorCalculusNumpy.py
 * TensorCalculusSympy.py
 * CentralODFAverage.py
 
-The present files help the user to reproduce all results and examples discussed in the aboved referred work. The user only needs to run the file
+## Demonstration notebooks
 
-* main.py 
+The first two demonstration notebooks show how permutation basis for isotropic tensor spaces can be generated and how the isotropic D tensors in [1] may be computed.
 
-which calls the routines in 'source' and loads the data of the .txt-files saved in 'source/data'.
+* [01 Generation of a permutation basis](.01_permutation_basis.ipynb)
+* [02 D tensors](.02_D_tensors.ipynb)
+
+The remaining three demonstration notebooks correspond to the examples discussed in [1] in section 3.
+
+* [03 Materials design](.03_materials_design.ipynb): see pubished work [1], section 3.1
+* [04 Higher order elasticity](.04_higher_order_elasticity.ipynb): see pubished work [1], section 3.2
+* [05 Texture](.03_materials_design.ipynb): see pubished work [1], section 3.3
