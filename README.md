@@ -1,8 +1,10 @@
 # centralODF-averages
 
-by Mauricio Fernández.
+Information:
 
-Contact: mauricio.fernandez.lb@gmail.com
+* Author: Dr.-Ing. Mauricio Fernández
+* Contact: mauricio.fernandez.lb@gmail.com
+* Last edited: 2021-10-06
 
 Content:
 
