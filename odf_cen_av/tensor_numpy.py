@@ -1,7 +1,9 @@
 import numpy as np
 import sympy as sym
 import os
-from . import TensorCalculusSympy as ts
+
+from . import tensor_sympy as ts
+from .constants import *
 
 # %% Tensor algebra routines
 
@@ -174,7 +176,7 @@ def checkhonb(r):
     rexist = 0
     while check and rexist < r:
         rexist += 1
-        check = os.path.isfile('src/data/honb' + str(rexist) + '.txt')
+        check = os.path.isfile(DATA_FOLDER + 'honb' + str(rexist) + '.txt')
     if check:
         print('Harmonic ONBs already generated up to tensor order %i' % r)
     if not check:
@@ -188,7 +190,7 @@ def checkhonb(r):
             print('...Generating harmonic basis für r=%i' % rr)
             b = genhonb(rr)
             b = b.reshape([b.shape[0],-1])
-            np.savetxt('src/data/honb' + str(rr) + '.txt', b)
+            np.savetxt(DATA_FOLDER + 'honb' + str(rr) + '.txt', b)
 
 # %% Linear algebra routines
 

@@ -213,7 +213,7 @@ def orth(b):
 I2 = sym.Array(sym.eye(3))
 
 # Permutation tensor
-pt = sym.MutableDenseNDimArray(np.zeros([3, 3, 3], dtype=np.int))
+pt = sym.MutableDenseNDimArray(np.zeros([3, 3, 3], dtype=int))
 pt[0, 1, 2] = 1
 pt[1, 2, 0] = 1
 pt[2, 0, 1] = 1
